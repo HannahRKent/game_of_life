@@ -3,6 +3,7 @@ package de.orchound.gameoflife;
 import de.orchound.gameoflife.game.Board;
 import de.orchound.gameoflife.rendering.BoardRenderer;
 import processing.core.PApplet;
+import processing.event.MouseEvent;
 
 public class GameOfLifeApplet extends PApplet {
 
@@ -12,6 +13,13 @@ public class GameOfLifeApplet extends PApplet {
 	private final long frameDurationIncrement = 100_000_000L;
 	private long frameDuration = 200_000_000L;
 	private long updateTimestamp = System.nanoTime();
+
+	private final int windowWidth = 1280;
+	private final int windowHeight = 720;
+	private float viewOffsetX = windowWidth / 2f;
+	private float viewOffsetY = windowHeight / 2f;
+
+	private float scale = 20f;
 
 	public GameOfLifeApplet(Board board) {
 		this.board = board;
@@ -25,27 +33,44 @@ public class GameOfLifeApplet extends PApplet {
 
 	@Override
 	public void settings() {
-		size(1280, 720);
+		size(windowWidth, windowHeight);
 	}
 
 	@Override
 	public void draw() {
 		tick();
 
-		background(200);
+		background(0);
 
 		pushMatrix();
-		scale(20f);
+
+		translate(viewOffsetX, viewOffsetY);
+		scale(scale);
 		boardRenderer.render();
+
 		popMatrix();
+	}
+
+	@Override
+	public void mouseDragged() {
+		if (mouseButton == LEFT) {
+			viewOffsetX += mouseX - pmouseX;
+			viewOffsetY += mouseY - pmouseY;
+		}
 	}
 
 	@Override
 	public void keyPressed() {
 		switch (key) {
-		case '+' -> increaseSpeed();
-		case '-' -> decreaseSpeed();
+		case '+' -> changeSpeed(frameDuration - frameDurationIncrement);
+		case '-' -> changeSpeed(frameDuration + frameDurationIncrement);
+		case 'c' -> resetView();
 		}
+	}
+
+	@Override
+	public void mouseWheel(MouseEvent event) {
+		scale = constrain(scale - event.getCount() * 0.5f, 1f, 40f);
 	}
 
 	private void update() {
@@ -60,11 +85,12 @@ public class GameOfLifeApplet extends PApplet {
 		}
 	}
 
-	private void increaseSpeed() {
-		frameDuration = Math.max(frameDuration - frameDurationIncrement, 100_000_000L);
+	private void resetView() {
+		viewOffsetX = windowWidth / 2f;
+		viewOffsetY = windowHeight / 2f;
 	}
 
-	private void decreaseSpeed() {
-		frameDuration = Math.min(frameDuration + frameDurationIncrement, 1_000_000_000L);
+	private void changeSpeed(long target) {
+		frameDuration = Math.max(100_000_000L, Math.min(1_000_000_000L, target));
 	}
 }
