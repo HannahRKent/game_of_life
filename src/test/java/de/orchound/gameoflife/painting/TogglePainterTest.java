@@ -60,6 +60,5 @@ public class TogglePainterTest {
 
 		assertTrue(game.getCellStatus(cell1));
 		assertFalse(game.getCellStatus(cell2));
-
 	}
 }
